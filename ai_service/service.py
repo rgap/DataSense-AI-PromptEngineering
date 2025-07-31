@@ -8,7 +8,7 @@ import io
 from dotenv import load_dotenv
 import re
 
-load_dotenv() # Carga las variables de entorno desde el archivo .env
+load_dotenv() 
 
 # --- Configuración de la API de Gemini ---
 try:
@@ -26,13 +26,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# --- Modelo Pydantic para la estructura de la respuesta ---
 class Observacion(BaseModel):
     tipo_de_reporte: str
     titulo: str
     mensaje: str
 
-# Nuevo modelo para la estructura detallada de Sugerencia
 class Sugerencia(BaseModel):
     tipo_de_reporte: str
     titulo: str
@@ -43,13 +41,12 @@ class Metricas(BaseModel):
     porcentaje_filas_duplicadas: int 
     salud_del_dataset: int 
 
-# Modelo extendido con validación estricta
 class ValidatedAnalysisResult(BaseModel):
     observaciones: list[Observacion]
     metricas: Metricas
     sugerencias: list[Sugerencia] 
 
-# --- Función para limpiar claves del JSON ---
+# --- limpiar claves del JSON ---
 def clean_json_keys(obj):
     if isinstance(obj, dict):
         return {
@@ -61,7 +58,7 @@ def clean_json_keys(obj):
     return obj
 
 
-# --- Endpoint para el análisis del dataset ---
+# --- Endpoint ---
 @app.post("/analyze_dataset/", response_model=ValidatedAnalysisResult)
 async def analyze_dataset(file: UploadFile = File(...)):
     """
@@ -217,15 +214,14 @@ async def analyze_dataset(file: UploadFile = File(...)):
         
         formatted_prompt = analysis_prompt_template.format(dataset_content=dataset_string)
         
-        # --- Depuración: Imprime el prompt formateado ---
+        # --- Depuración ---
         print(f"DEBUG: Prompt formateado (primeros 500 caracteres): {formatted_prompt[:500]}...")
         print(f"DEBUG: Longitud total del prompt: {len(formatted_prompt)} caracteres.")
 
         model = genai.GenerativeModel('gemini-2.0-flash')
 
-        response = None # Inicializa response a None
+        response = None 
         try:
-            # --- Bloque TRY/EXCEPT específico para la llamada a Gemini API ---
             print("DEBUG: Intentando llamar a model.generate_content()...")
             response = model.generate_content(
                 formatted_prompt,
@@ -235,7 +231,6 @@ async def analyze_dataset(file: UploadFile = File(...)):
             )
             print(f"DEBUG: Llamada a model.generate_content() completada. Objeto de respuesta: {response}")
             
-            # Verificamos si la respuesta tiene contenido de texto
             if not hasattr(response, 'text') or not response.text:
                 print(f"ADVERTENCIA: La respuesta de Gemini no tiene atributo 'text' o está vacía. Objeto completo: {response}")
                 if response.candidates and response.candidates[0].finish_reason:
@@ -248,13 +243,11 @@ async def analyze_dataset(file: UploadFile = File(...)):
             print(f"DEBUG: Respuesta cruda de Gemini (para depuración): {raw_gemini_response[:1000]}")
 
         except Exception as gemini_api_call_e:
-            # Captura cualquier error que ocurra directamente de la llamada a Gemini
             print(f"ERROR: Fallo en la llamada a Gemini API: {gemini_api_call_e}")
             print(f"ERROR: Tipo de excepción de la llamada a Gemini: {type(gemini_api_call_e)}")
             print(f"ERROR: Representación completa de la excepción: {repr(gemini_api_call_e)}")
             raise HTTPException(status_code=500, detail=f"Error en la comunicación con Gemini API: {gemini_api_call_e}")
 
-        # --- Procesamiento de la respuesta de Gemini (MEJORA DE ROBUSTEZ CON REGEX) ---
         try:
             json_match = re.search(r'\{.*\}', raw_gemini_response, re.DOTALL | re.MULTILINE)
 
@@ -286,7 +279,6 @@ async def analyze_dataset(file: UploadFile = File(...)):
     except pd.errors.EmptyDataError:
         raise HTTPException(status_code=400, detail="El archivo está vacío o no contiene datos.")
     except Exception as e:
-        # Esta es la captura de errores más externa para cualquier cosa que no se haya manejado antes
         print(f"ERROR: Error inesperado en analyze_dataset (catch-all final): {e}")
         print(f"ERROR: Tipo de excepción inesperada (catch-all final): {type(e)}")
         print(f"ERROR: Representación completa de la excepción (catch-all final): {repr(e)}")
