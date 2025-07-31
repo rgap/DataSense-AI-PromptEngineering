@@ -1,0 +1,72 @@
+🔐 Requisitos
+Python 3.9+
+
+Cuenta y API Key válida de Gemini (Google Generative AI)
+
+      1- Instalación
+
+git clone https://github.com/DataSense-AI/DataSense-AI.git
+cd DataSense-AI/ai_service/ai_service
+
+      2- Crea un entorno virtual e instala dependencias:
+
+python -m venv venv
+source venv/bin/activate  # o .\venv\Scripts\activate en Windows
+pip install -r requirements.txt
+
+      3- Nota: Asegúrate de tener configurado el archivo .env con tu clave de Gemini:
+
+GEMINI_API_KEY=tu_clave_de_api_aqui
+
+      4- Ejecuta el servidor:
+
+uvicorn service:app --reload
+
+      5- accede a la documentación interactiva de la API en:
+
+http://localhost:8000/docs
+
+
+---
+
+      Endpoint principal
+
+POST /analyze_dataset/
+
+formato de respuesta esperada:
+
+{
+  "observaciones": [
+    {
+      "tipo_de_reporte": "observacion",
+      "titulo": "Distribución Sesgada",
+      "mensaje": "La variable X tiene valores extremos que afectan la media general."
+    }
+    // Hasta 10 observaciones
+  ],
+  "metricas": {
+    "porcentaje_valores_faltantes": 12,
+    "porcentaje_filas_duplicadas": 3,
+    "salud_del_dataset": 82
+  },
+  "sugerencias": [
+    {
+      "tipo_de_reporte": "sugerencia",
+      "titulo": "Eliminar duplicados para evitar distorsiones."
+    }
+    // Hasta 4 sugerencias
+  ]
+}
+
+---
+
+⚠️ Reglas estrictas del análisis (impuestas al modelo Gemini)
+Sin inferencias externas.
+
+No se realiza limpieza automática de datos.
+
+Sin imputación ni eliminación automática de outliers o duplicados.
+
+Máximo 10 observaciones y 4 sugerencias.
+
+Enfoque neutral, objetivo y accionable.
