@@ -1,7 +1,7 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import AppLayout from "./layouts/AppLayout";
 import DashboardView from "./views/DashboardView";
-import MetricsView from "./views/MetricsView";
+import HomeView from "./views/HomeView";
 import LoadingView from "./views/LoadingView";
 
 export default function Router() {
@@ -9,9 +9,9 @@ export default function Router() {
     <BrowserRouter>
       <Routes>
         <Route element={<AppLayout />}>
-          <Route path="/" element={<DashboardView />} />
+          <Route path="/" element={<HomeView />} />
           <Route path="/analizando" element={<LoadingView />} />
-          <Route path="/resultados" element={<MetricsView />} />
+          <Route path="/resultados" element={<DashboardView />} />
         </Route>
       </Routes>
     </BrowserRouter>
