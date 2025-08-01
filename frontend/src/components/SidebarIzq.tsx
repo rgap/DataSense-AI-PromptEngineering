@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatFileSize } from "../utils";
 
 type SidebarTypesProps = {
   file: File;
@@ -6,6 +7,7 @@ type SidebarTypesProps = {
 
 export default function SidebarIzq({ file }: SidebarTypesProps) {
   const [recordCount, setRecordCount] = useState<number | null>(null);
+  const [analysisDate, setAnalysisDate] = useState<Date | null>(null);
 
   useEffect(() => {
     const reader = new FileReader();
@@ -13,6 +15,7 @@ export default function SidebarIzq({ file }: SidebarTypesProps) {
       const text = e.target?.result as string;
       const lines = text.split(/\r?\n/).filter((line) => line.trim() !== "");
       setRecordCount(lines.length - 1); // -1 para excluir encabezado
+      setAnalysisDate(new Date()); // Guarda la fecha actual
     };
     reader.readAsText(file);
   }, [file]);
@@ -38,7 +41,13 @@ export default function SidebarIzq({ file }: SidebarTypesProps) {
           <div className="text-sm mb-1 flex justify-between">
             Fecha de análisis:{" "}
             <span className="text-[#134CCA] font-medium">
-              {file.lastModified}
+              {analysisDate
+                ? analysisDate?.toLocaleDateString("es-AR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })
+                : "Cargando..."}
             </span>
           </div>
           <div className="text-sm mb-1 flex justify-between">
@@ -51,7 +60,9 @@ export default function SidebarIzq({ file }: SidebarTypesProps) {
           </div>
           <div className="text-sm mb-4 flex justify-between">
             Tamaño:{" "}
-            <span className="text-[#134CCA] font-medium">{file.size}</span>
+            <span className="text-[#134CCA] font-medium">
+              {formatFileSize(file.size)}
+            </span>
           </div>
         </div>
         <a href="/">
