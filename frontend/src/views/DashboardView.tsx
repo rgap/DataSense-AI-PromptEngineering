@@ -8,7 +8,7 @@ export default function DashboardView() {
 
   return (
     <>
-      <div className="flex flex-row gap-8 max-w-7xl mx-auto py-10 px-4">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 max-w-7xl mx-auto py-4 lg:py-10 px-2 lg:px-4">
         <SidebarIzq file={file} />
         <SidebarDrc analysis={analysis} />
       </div>
