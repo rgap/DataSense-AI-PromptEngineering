@@ -3,6 +3,8 @@
 Es una plataforma de análisis de datasets en formato csv ( en un principio ). Su objetivo es analizar y dar sugerencias, alertas y observaciones que ayuden en la toma de decisiones en base al proposito del dataset.
 Está pensado para equipos, empresas, o usuarios que cuenten con grandes volumenes de datos y quieren una respuesta pronta para la toma de decisiones.
 
+[Figma](https://www.figma.com/design/GJgPDmHTE44pZ5B41Xgffe/DataSense-AI---No-Country?node-id=2-432&t=mhd70IRg6kSjXHL0-1)
+
 ---
 
 ## 📖 Índice
