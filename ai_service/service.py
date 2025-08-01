@@ -1,5 +1,6 @@
 import pandas as pd
 from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import google.generativeai as genai
 import json
@@ -24,6 +25,15 @@ app = FastAPI(
     title="API de Análisis de Dataset con Gemini",
     description="Servicio de IA para análisis de datasets, proporcionando métricas, observaciones y sugerencias accionables.",
     version="1.0.0"
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
 )
 
 class Observacion(BaseModel):
