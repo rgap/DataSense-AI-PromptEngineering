@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Title from "@/components/Title";
 import Characteristics from "@/components/Characteristics";
 
@@ -20,8 +20,10 @@ const steps = [
 
 export default function LoadingView() {
   const [progress, setProgress] = useState(0);
+  const location = useLocation();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
+  const { analysis, file } = location.state || {};
 
   useEffect(() => {
     if (progress < 100) {
@@ -36,10 +38,10 @@ export default function LoadingView() {
     } else {
       setStep(2);
       setTimeout(() => {
-        navigate("/resultados");
+        navigate("/resultados", { state: { analysis: analysis, file } });
       }, 1200); // Espera un poco antes de redirigir
     }
-  }, [progress, navigate]);
+  }, [progress, navigate, analysis, file]);
 
   useEffect(() => {
     if (progress < 40) setStep(0);
@@ -54,9 +56,6 @@ export default function LoadingView() {
       : idx === step
       ? "border-blue-600 text-blue-600 bg-white opacity-100"
       : "border-gray-300 text-gray-300 bg-white opacity-40";
-
-  const getLineStyle = (idx: number) =>
-    idx < step ? "border-blue-600" : "border-gray-200";
 
   return (
     <div className="flex flex-col items-center px-4 py-10 max-w-5xl mx-auto">

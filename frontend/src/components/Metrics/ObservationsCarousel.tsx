@@ -1,41 +1,23 @@
 import { useState } from "react";
-const mockObservations = [
-  {
-    type: "error",
-    title: "220 columna name hay duplicados",
-    description:
-      "Se detectaron registros duplicados que podrían afectar la precisión del análisis",
-  },
-  {
-    type: "warning",
-    title: "Valores nulos esperados en Moves.csv",
-    description:
-      "Algunos campos contienen valores vacíos que son normales para este tipo de datos",
-  },
-  {
-    type: "success",
-    title: "Estructura de datos válida",
-    description:
-      "El esquema general del archivo cumple con los estándares esperados",
-  },
-  {
-    type: "warning",
-    title: "Formato inconsistente en columna #3",
-    description:
-      "La columna de fechas presenta diferentes formatos que requieren normalización",
-  },
-];
+import type { Observacion } from "../../types/index";
 
-export default function ObservationsCarousel() {
+type ObservationsProps = {
+  observaciones: Observacion[];
+};
+
+export default function ObservationsCarousel({
+  observaciones,
+}: ObservationsProps) {
   const [obsPage, setObsPage] = useState(0);
 
   // Observaciones
   const obsPerPage = 3;
-  const obsTotalPages = Math.ceil(mockObservations.length / obsPerPage);
-  const obsToShow = mockObservations.slice(
+  const obsTotalPages = Math.ceil(observaciones.length / obsPerPage);
+  const obsToShow = observaciones.slice(
     obsPage * obsPerPage,
     (obsPage + 1) * obsPerPage
   );
+
   return (
     <>
       <div className="flex justify-between">
@@ -86,36 +68,16 @@ export default function ObservationsCarousel() {
         {obsToShow.map((obs, i) => (
           <div
             key={i}
-            className={`flex-1 flex gap-2 rounded-xl shadow p-4 border-l-4 ${
-              obs.type === "error"
-                ? "border-red-400 bg-red-50"
-                : obs.type === "warning"
-                ? "border-yellow-400 bg-yellow-50"
-                : "border-green-400 bg-green-50"
-            }`}
+            className={`flex-1 flex gap-2 rounded-xl shadow p-4 border-[#C79425] border-2 bg-[#FEFCE8]`}
           >
-            {obs.type === "error" ? (
-              <img
-                src="/img/iconos/svg/warningIcon.svg"
-                className="w-4 h-4"
-                alt="Icono de alerta de peligro"
-              />
-            ) : obs.type === "warning" ? (
-              <img
-                src="/img/iconos/svg/adviceIcon.svg"
-                className="w-4 h-4"
-                alt="Icono de alerta de advertencia"
-              />
-            ) : (
-              <img
-                src="/img/iconos/svg/tortaIcon.svg"
-                className="w-4 h-4"
-                alt="Icono de alerta cumplido"
-              />
-            )}
+            <img
+              src="/img/iconos/svg/adviceIcon.svg"
+              className="w-4 h-4"
+              alt="Icono de alerta de advertencia"
+            />
             <div className="flex flex-col gap-2">
-              <p className="font-bold mb-1 text-base">{obs.title}</p>
-              <p className="text-sm text-gray-700">{obs.description}</p>
+              <p className="font-bold mb-1 text-base">{obs.titulo}</p>
+              <p className="text-sm text-gray-700">{obs.mensaje}</p>
             </div>
           </div>
         ))}

@@ -1,12 +1,24 @@
+import type { Metricas } from "@/types/index";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
-const data = [
-  { name: "Errores de formato", value: 4.5, color: "#F87171" },
-  { name: "Valores nulos", value: 6.3, color: "#FBBF24" },
-  { name: "Duplicados", value: 17.1, color: "#34D399" },
-];
+type MetricsCardProps = {
+  metricas: Metricas;
+};
 
-export default function MetricsCard() {
+export default function MetricsCard({ metricas }: MetricsCardProps) {
+  const data = [
+    {
+      name: "Valores faltantes",
+      value: metricas.porcentaje_valores_faltantes,
+      color: "#FBBF24",
+    },
+    {
+      name: "Duplicados",
+      value: metricas.porcentaje_filas_duplicadas,
+      color: "#34D399",
+    },
+    { name: "Salud", value: metricas.salud_del_dataset, color: "#60A5FA" },
+  ];
   return (
     <>
       <div className="flex-1 bg-white rounded-xl shadow p-6 border border-yellow-100 hover:border-yellow-400 transition group">

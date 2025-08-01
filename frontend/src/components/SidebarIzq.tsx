@@ -1,12 +1,22 @@
-const mockFileInfo = {
-  name: "clientes_data.csv",
-  date: "31 Julio 2025",
-  records: 10,
-  size: "434 B",
-  recent: [{ name: "clientes_data.csv", date: "31 Julio 2025" }],
+import { useEffect, useState } from "react";
+
+type SidebarTypesProps = {
+  file: File;
 };
 
-export default function SidebarIzq() {
+export default function SidebarIzq({ file }: SidebarTypesProps) {
+  const [recordCount, setRecordCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      const lines = text.split(/\r?\n/).filter((line) => line.trim() !== "");
+      setRecordCount(lines.length - 1); // -1 para excluir encabezado
+    };
+    reader.readAsText(file);
+  }, [file]);
+
   return (
     <>
       <aside
@@ -17,32 +27,58 @@ export default function SidebarIzq() {
       >
         <div className="bg-[#E4ECFF] rounded-xl shadow p-6 mb-6">
           <div className="flex items-center gap-2 mb-2">
-            <img src="/img/iconos/svg/csvFile.svg" className="w-6 h-6" alt="Icono de archivo CSV" />
-            <span className="font-semibold text-lg">{mockFileInfo.name}</span>
+            <img
+              src="/img/iconos/svg/csvFile.svg"
+              className="w-6 h-6"
+              alt="Icono de archivo CSV"
+            />
+            <span className="font-semibold text-lg">{file.name}</span>
           </div>
           <div className="text-sm text-gray-500 mb-2">Archivo actual</div>
           <div className="text-sm mb-1 flex justify-between">
-            Fecha de análisis: <span className="text-[#134CCA] font-medium">{mockFileInfo.date}</span>
+            Fecha de análisis:{" "}
+            <span className="text-[#134CCA] font-medium">
+              {file.lastModified}
+            </span>
           </div>
           <div className="text-sm mb-1 flex justify-between">
-            Registros: <span className="text-[#134CCA] font-medium">{mockFileInfo.records.toLocaleString()}</span>
+            Registros:{" "}
+            <span className="text-[#134CCA] font-medium">
+              {recordCount !== null
+                ? recordCount.toLocaleString()
+                : "Cargando..."}
+            </span>
           </div>
           <div className="text-sm mb-4 flex justify-between">
-            Tamaño: <span className="text-[#134CCA] font-medium">{mockFileInfo.size}</span>
+            Tamaño:{" "}
+            <span className="text-[#134CCA] font-medium">{file.size}</span>
           </div>
         </div>
-        <button className="w-full py-2 rounded-lg bg-gradient-to-r from-[#094FC2] to-[#5A38AA] text-white font-bold shadow hover:opacity-90 transition cursor-pointer">
-          <span className="inline-flex items-center gap-2">
-            <img src="/img/iconos/svg/reupload.svg" className="w-5 h-5" alt="" />
-            Subir nuevo archivo
-          </span>
-        </button>
-        <div className="mt-10">
+        <a href="/">
+          <button className="w-full py-2 rounded-lg bg-gradient-to-r from-[#094FC2] to-[#5A38AA] text-white font-bold shadow hover:opacity-90 transition cursor-pointer">
+            <span className="inline-flex items-center gap-2">
+              <img
+                src="/img/iconos/svg/reupload.svg"
+                className="w-5 h-5"
+                alt=""
+              />
+              Subir nuevo archivo
+            </span>
+          </button>
+        </a>
+        {/* <div className="mt-10">
           <h2 className="font-bold text-2xl mb-2">Archivos recientes</h2>
           <ul>
-            {mockFileInfo.recent.map(f => (
-              <li key={f.name} className="flex items-center gap-2 text-gray-400 text-sm mb-1">
-                <img src="/img/iconos/svg/csvFile.svg" className="w-4 h-4" alt="" />
+            {mockFileInfo.recent.map((f) => (
+              <li
+                key={f.name}
+                className="flex items-center gap-2 text-gray-400 text-sm mb-1"
+              >
+                <img
+                  src="/img/iconos/svg/csvFile.svg"
+                  className="w-4 h-4"
+                  alt=""
+                />
                 <div className="flex flex-col gap-1">
                   <span className="text-black text-xl">{f.name}</span>
                   <span className="">{f.date}</span>
@@ -50,7 +86,7 @@ export default function SidebarIzq() {
               </li>
             ))}
           </ul>
-        </div>
+        </div> */}
       </aside>
     </>
   );

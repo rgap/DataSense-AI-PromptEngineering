@@ -1,11 +1,10 @@
-const mockSuggestions = [
-  "Eliminar filas duplicadas no intencionales",
-  "Uniformar formatos de columnas inconsistentes",
-  "Revisar columnas con +50% de nulos",
-  "Normalizar categorías amplias o ambiguas",
-];
+import type { Sugerencia } from "@/types/index";
 
-export default function SuggestionsCard() {
+type SuggestionsProps = {
+  sugerencias: Sugerencia[];
+};
+
+export default function SuggestionsCard({ sugerencias }: SuggestionsProps) {
   return (
     <>
       <div className="flex-1 bg-white rounded-xl shadow p-6 border border-blue-200 hover:border-blue-600 transition group">
@@ -20,10 +19,10 @@ export default function SuggestionsCard() {
           </span>
         </div>
         <ul className="list-none pl-0">
-          {mockSuggestions.map((s, i) => (
+          {sugerencias.map((s, i) => (
             <li key={i} className="flex items-center gap-2 mb-1">
               <span>✅</span>
-              <span>{s}</span>
+              <span>{s.mensaje}</span>
             </li>
           ))}
         </ul>
