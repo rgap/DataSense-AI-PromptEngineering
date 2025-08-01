@@ -131,8 +131,8 @@ Consulta el archivo LICENSE para más información.
 
 ## 📬 Equipo
 
-- Matias Ron Ares 📧 [matiasronares@gmail.com](mailto:matiasronares@gmail.com)
+- Matias Ron Ares 💼 [LinkedIn](https://www.linkedin.com/in/mat%C3%ADas-ron-ares-a4b09819a?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app)
 - Salvador Martínez 💼 [LinkedIn](https://www.linkedin.com/in/salvador-mart%C3%ADnez-2bb28135a/)
 - Kevin Agustin Ruiz 💼 [LinkedIn](https://www.linkedin.com/in/kevinagustin/)
 - Rel Guzman 💼 [LinkedIn](https://www.linkedin.com/in/relguzman/)
-- Natalia
+- Natalia Silva 💼 [LinkedIn](https://www.linkedin.com/in/natalia-silva-b1577527a?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app)
