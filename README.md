@@ -129,8 +129,8 @@ Consulta el archivo LICENSE para más información.
 
 ## 📬 Equipo
 
-Matias Ron Ares 📧 [matiasronares@gmail.com](mailto:matiasronares@gmail.com)
-Salvador Martínez 💼 [LinkedIn](https://www.linkedin.com/in/salvador-mart%C3%ADnez-2bb28135a/)
-Kevin Agustin Ruiz 💼 [LinkedIn](https://www.linkedin.com/in/kevinagustin/)
-Rel Guzman 💼 [LinkedIn](https://www.linkedin.com/in/relguzman/)
-Natalia
+- Matias Ron Ares 📧 [matiasronares@gmail.com](mailto:matiasronares@gmail.com)
+- Salvador Martínez 💼 [LinkedIn](https://www.linkedin.com/in/salvador-mart%C3%ADnez-2bb28135a/)
+- Kevin Agustin Ruiz 💼 [LinkedIn](https://www.linkedin.com/in/kevinagustin/)
+- Rel Guzman 💼 [LinkedIn](https://www.linkedin.com/in/relguzman/)
+- Natalia
