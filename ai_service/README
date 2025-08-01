@@ -11,7 +11,7 @@ cd DataSense-AI/ai_service/ai_service
       2- Crea un entorno virtual e instala dependencias:
 
 python -m venv venv
-source venv/bin/activate  # o .\venv\Scripts\activate en Windows
+source venv/bin/activate # o .\venv\Scripts\activate en Windows
 pip install -r requirements.txt
 
       3- Nota: Asegúrate de tener configurado el archivo .env con tu clave de Gemini:
@@ -26,7 +26,6 @@ uvicorn service:app --reload
 
 http://localhost:8000/docs
 
-
 ---
 
       Endpoint principal
@@ -36,26 +35,26 @@ POST /analyze_dataset/
 formato de respuesta esperada:
 
 {
-  "observaciones": [
-    {
-      "tipo_de_reporte": "observacion",
-      "titulo": "Distribución Sesgada",
-      "mensaje": "La variable X tiene valores extremos que afectan la media general."
-    }
-    // Hasta 10 observaciones
-  ],
-  "metricas": {
-    "porcentaje_valores_faltantes": 12,
-    "porcentaje_filas_duplicadas": 3,
-    "salud_del_dataset": 82
-  },
-  "sugerencias": [
-    {
-      "tipo_de_reporte": "sugerencia",
-      "titulo": "Eliminar duplicados para evitar distorsiones."
-    }
-    // Hasta 4 sugerencias
-  ]
+"observaciones": [
+{
+"tipo_de_reporte": "observacion",
+"titulo": "Distribución Sesgada",
+"mensaje": "La variable X tiene valores extremos que afectan la media general."
+}
+// Hasta 10 observaciones
+],
+"metricas": {
+"porcentaje_valores_faltantes": 12,
+"porcentaje_filas_duplicadas": 3,
+"salud_del_dataset": 82
+},
+"sugerencias": [
+{
+"tipo_de_reporte": "sugerencia",
+"titulo": "Eliminar duplicados para evitar distorsiones."
+}
+// Hasta 4 sugerencias
+]
 }
 
 ---
