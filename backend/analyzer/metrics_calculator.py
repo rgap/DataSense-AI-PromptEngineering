@@ -174,8 +174,7 @@ class MetricsCalculator:
             missing_pct = (series.isnull().sum() / len(series)) * 100
             if missing_pct > 50:
                 col_issues.append(
-                    f"Alto porcentaje de valores faltantes ({
-                        missing_pct:.1f}%)")
+                    f"Alto porcentaje de valores faltantes ({missing_pct:.1f}%)")
 
             # For categorical columns
             if col in self.categorical_columns:
@@ -191,7 +190,8 @@ class MetricsCalculator:
                     if len(non_null_series) > 0:
                         # Check for mixed case issues
                         has_mixed_case = any(
-                            val.lower() in [v.lower() for v in non_null_series.unique() if v != val]
+                            val.lower() in [v.lower()
+                                            for v in non_null_series.unique() if v != val]
                             for val in non_null_series.unique()
                         )
                         if has_mixed_case:

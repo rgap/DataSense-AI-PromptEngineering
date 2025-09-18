@@ -7,7 +7,6 @@
 
 ```
 
-
 ## Dependencias utilizadas:
 
 - Zod
