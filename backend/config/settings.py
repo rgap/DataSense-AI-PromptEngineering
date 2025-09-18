@@ -9,13 +9,6 @@ load_dotenv()
 def get_gemini_config():
     """
     Configure and return Gemini API settings.
-
-    Returns:
-        None: Configuration is applied globally to genai module
-
-        Raises:
-        ValueError: If GEMINI_API_KEY is not configured
-        RuntimeError: If there's an error configuring the API
     """
     try:
         api_key = os.getenv("GEMINI_API_KEY")

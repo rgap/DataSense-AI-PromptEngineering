@@ -1,6 +1,6 @@
 # 🚀 DataSense-AI Service
 
-Automatic dataset analysis service powered by **Gemini (Google Generative AI)**.
+Automatic CSV analysis service powered by **Gemini (Google Generative AI)**.
 
 ---
 
@@ -55,33 +55,6 @@ http://localhost:8000/docs
 ## 📡 Main Endpoint
 
 **POST** `/analyze_dataset/`
-
-### Example Response
-
-```json
-{
-  "observations": [
-    {
-      "report_type": "observation",
-      "title": "Skewed Distribution",
-      "message": "Variable X contains extreme values that affect the overall mean."
-    }
-    // Up to 10 observations
-  ],
-  "metrics": {
-    "missing_values_percentage": 12,
-    "duplicate_rows_percentage": 3,
-    "dataset_health": 82
-  },
-  "suggestions": [
-    {
-      "report_type": "suggestion",
-      "title": "Remove duplicates to avoid distortions."
-    }
-    // Up to 4 suggestions
-  ]
-}
-```
 
 ---
 

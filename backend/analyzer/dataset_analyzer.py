@@ -5,220 +5,110 @@ import re
 import google.generativeai as genai
 import pandas as pd
 from fastapi import HTTPException
-from models.schemas import ValidatedAnalysisResult
 from utils.helpers import clean_json_keys
 
 from .metrics_calculator import MetricsCalculator
 
 
 class DatasetAnalyzer:
-    """
-    Dataset analyzer that uses Google's Gemini AI to analyze CSV and Excel
-    files.
-    """
+    """Simple dataset analyzer using Gemini AI with pre-computed metrics."""
 
     def __init__(self):
-        self.model = genai.GenerativeModel('gemini-2.0-flash')
-        self.analysis_prompt_template = self._get_analysis_prompt_template()
+        self.model = genai.GenerativeModel("gemini-2.0-flash")
 
-    async def analyze_file(self, file) -> ValidatedAnalysisResult:
+    async def analyze_file(self, file):
         """
         Analyze a dataset file and return structured analysis results.
         """
         # Validate file type
-        if not file.filename.endswith(('.csv', '.xlsx')):
+        if not file.filename.endswith(".csv"):
             raise HTTPException(
                 status_code=400,
-                detail="Tipo de archivo no soportado. Por favor, sube un "
-                       "archivo .csv o .xlsx"
+                detail="Tipo de archivo no soportado. Sube un archivo .csv",
             )
 
         try:
-            # Read file content
+            # Read and process file
             contents = await file.read()
-            df = self._read_dataframe(contents, file.filename)
+            df = self._read_file(contents, file.filename)
 
-            # Calculate metrics locally instead of sending raw data
-            metrics_calculator = MetricsCalculator(df)
-            computed_metrics = metrics_calculator.calculate_all_metrics()
+            # Calculate metrics locally
+            metrics = MetricsCalculator(df).calculate_all_metrics()
 
-            # Generate analysis using Gemini AI with computed metrics
-            analysis_result = await self._generate_ai_analysis(
-                computed_metrics
-            )
-
-            return analysis_result
+            # Get AI analysis
+            return await self._get_ai_analysis(metrics)
 
         except pd.errors.EmptyDataError:
             raise HTTPException(
-                status_code=400,
-                detail="El archivo está vacío o no contiene datos."
+                status_code=400, detail="El archivo está vacío o no contiene datos."
             )
         except Exception as e:
-            print(f"ERROR: Error inesperado en analyze_file: {e}")
-            print(f"ERROR: Tipo de excepción: {type(e)}")
-            print(f"ERROR: Representación completa: {repr(e)}")
+            print(f"ERROR: {e}")
             raise HTTPException(
-                status_code=500,
-                detail=f"Error interno del servidor: {e}"
+                status_code=500, detail=f"Error interno del servidor: {e}"
             )
 
-    def _read_dataframe(self, contents: bytes, filename: str) -> pd.DataFrame:
-        """
-        Read file contents into a pandas DataFrame.
-        """
-        if filename.endswith('.csv'):
-            try:
-                return pd.read_csv(io.StringIO(contents.decode('utf-8')))
-            except UnicodeDecodeError:
-                return pd.read_csv(io.StringIO(contents.decode('latin1')))
-        elif filename.endswith('.xlsx'):
-            return pd.read_excel(io.BytesIO(contents))
+    def _read_file(self, contents, filename):
+        """Read CSV file contents into DataFrame."""
+        try:
+            return pd.read_csv(io.StringIO(contents.decode("utf-8")))
+        except UnicodeDecodeError:
+            return pd.read_csv(io.StringIO(contents.decode("latin1")))
 
-    async def _generate_ai_analysis(self, computed_metrics: dict) -> \
-            ValidatedAnalysisResult:
-        """
-        Generate AI analysis using Gemini model with computed metrics.
-        """
-        metrics_json = json.dumps(
-            computed_metrics, ensure_ascii=False, indent=2
-        )
-        formatted_prompt = self.analysis_prompt_template.format(
-            metrics_data=metrics_json
-        )
-
-        # Debug logging
-        print(f"DEBUG: Prompt formateado (primeros 500 caracteres): "
-              f"{formatted_prompt[:500]}...")
-        print(f"DEBUG: Longitud total del prompt: {len(formatted_prompt)} "
-              "caracteres.")
+    async def _get_ai_analysis(self, metrics):
+        """Get AI analysis from computed metrics."""
+        # Create prompt
+        prompt = self._create_prompt(metrics)
 
         # Call Gemini API
-        response = await self._call_gemini_api(formatted_prompt)
+        response = self.model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                response_mime_type="application/json"
+            ),
+        )
 
-        # Process and validate response
-        return self._process_gemini_response(response)
-
-    async def _call_gemini_api(self, prompt: str):
-        """
-        Call Gemini API with the formatted prompt.
-        """
-        try:
-            print("DEBUG: Intentando llamar a model.generate_content()...")
-            response = self.model.generate_content(
-                prompt,
-                generation_config=genai.types.GenerationConfig(
-                    response_mime_type="application/json"
-                )
-            )
-            print(f"DEBUG: Llamada completada. Objeto de respuesta: "
-                  f"{response}")
-
-            if not hasattr(response, 'text') or not response.text:
-                print(f"ADVERTENCIA: Respuesta sin texto. Objeto completo: "
-                      f"{response}")
-                if (response.candidates and
-                        response.candidates[0].finish_reason):
-                    reason = response.candidates[0].finish_reason
-                    raise ValueError(f"Gemini API no retornó texto. "
-                                     f"Razón: {reason}")
-                else:
-                    raise ValueError(f"Gemini API no retornó texto. "
-                                     f"Objeto: {response}")
-
-            return response
-
-        except Exception as e:
-            print(f"ERROR: Fallo en la llamada a Gemini API: {e}")
-            print(f"ERROR: Tipo de excepción: {type(e)}")
-            print(f"ERROR: Representación completa: {repr(e)}")
+        # Process response
+        if not response.text:
             raise HTTPException(
-                status_code=500,
-                detail=f"Error en la comunicación con Gemini API: {e}"
+                status_code=500, detail="No se recibió respuesta de Gemini"
             )
 
-    def _process_gemini_response(self, response) -> ValidatedAnalysisResult:
-        """
-        Process and validate Gemini API response.
-        """
-        try:
-            raw_gemini_response = response.text
-            print(f"DEBUG: Respuesta cruda de Gemini: "
-                  f"{raw_gemini_response[:1000]}")
+        return self._parse_response(response.text)
 
-            # Extract JSON from response
-            json_match = re.search(r'\{.*\}', raw_gemini_response,
-                                   re.DOTALL | re.MULTILINE)
+    def _create_prompt(self, metrics):
+        """Create analysis prompt with structured framework tags."""
+        metrics_json = json.dumps(metrics, ensure_ascii=False, indent=2)
 
-            if not json_match:
-                print(f"ERROR: No JSON encontrado. Respuesta completa: "
-                      f"{raw_gemini_response}")
-                raise ValueError("No se encontró un bloque JSON válido en la "
-                                 "respuesta de Gemini.")
+        return f"""
+<role>
+Eres un analista de datos experto especializado en evaluación de calidad de datos CSV.
+</role>
 
-            json_str = json_match.group(0)
-            parsed_json = json.loads(json_str)
-            cleaned_json = clean_json_keys(parsed_json)
+<task>
+Analiza los datos CSV y encuentra problemas. Da observaciones y sugerencias.
+</task>
 
-            print("DEBUG: JSON limpio final:")
-            print(json.dumps(cleaned_json, indent=2, ensure_ascii=False))
+<context>
+Tienes métricas de un archivo CSV:
+- Datos básicos
+- Números
+- Categorías
+- Correlaciones
+- Problemas encontrados
+</context>
 
-            # Validate with Pydantic
-            try:
-                validated = ValidatedAnalysisResult(**cleaned_json)
-                return validated
-            except Exception as validation_error:
-                print(f"ERROR: Validación fallida: {validation_error}")
-                raise HTTPException(
-                    status_code=500,
-                    detail="El JSON recibido no cumple con la estructura "
-                           "esperada."
-                )
+<instructions>
+- Analiza las métricas proporcionadas
+- Encuentra problemas de datos
+- Da sugerencias útiles
+- Títulos cortos
+- Mensajes claros
+- Enfócate en lo importante
+</instructions>
 
-        except (json.JSONDecodeError, ValueError) as e:
-            print(f"ERROR: Fallo al procesar JSON: {e}")
-            print(f"ERROR: Tipo de excepción: {type(e)}")
-            print(f"ERROR: Respuesta cruda: {response.text}")
-            raise HTTPException(
-                status_code=500,
-                detail=f"Error al procesar la respuesta de Gemini: {e}. "
-                f"Respuesta recibida: {response.text[:500]}..."
-            )
-
-    def _get_analysis_prompt_template(self) -> str:
-        """
-        Get the analysis prompt template for Gemini AI.
-        """
-        return """
-Eres un analista de datos experto que debe producir un reporte ejecutivo \
-claro basado en métricas pre-calculadas de un dataset.
-
-Tu objetivo es analizar las métricas proporcionadas y generar observaciones \
-y sugerencias accionables sobre la calidad, estructura y patrones del dataset.
-
-INSTRUCCIONES:
-- Usa ÚNICAMENTE las métricas proporcionadas, no inventes datos
-- Identifica problemas de calidad de datos basándote en las métricas
-- Detecta patrones relevantes (correlaciones, outliers, distribuciones)
-- Proporciona sugerencias accionables y específicas
-- Mantén un tono neutral y objetivo
-- No hagas suposiciones sobre el contexto de negocio
-
-CONCEPTOS A DETECTAR:
-1. Calidad de datos: valores faltantes, duplicados, outliers
-2. Estructura: dimensiones, tipos de variables
-3. Patrones: correlaciones fuertes, distribuciones anómalas
-4. Problemas: inconsistencias, columnas problemáticas
-
-RESTRICCIONES:
-- Responde SOLO con JSON válido, sin texto adicional
-- Máximo 10 observaciones (prioriza las más importantes)
-- Máximo 4 sugerencias accionables
-- Cada observación/sugerencia: máximo 100 caracteres
-- Las métricas deben ser números enteros entre 0 y 100
-
-FORMATO DE SALIDA REQUERIDO:
-```json
+<output_format>
+Responde solo con JSON:
 {{
     "observaciones": [
         {{
@@ -240,6 +130,39 @@ FORMATO DE SALIDA REQUERIDO:
         }}
     ]
 }}
-MÉTRICAS DEL DATASET:
-{metrics_data}
+</output_format>
+
+<constraints>
+- Genera entre 5 y 8 observaciones
+- Genera 3 o 4 sugerencias
+- Métricas: números 0-100
+</constraints>
+
+<data>
+{metrics_json}
+</data>
 """
+
+    def _parse_response(self, response_text):
+        """Parse and validate AI response."""
+        try:
+            # Extract JSON
+            json_match = re.search(r"\{.*\}", response_text, re.DOTALL)
+            if not json_match:
+                raise ValueError("No se encontró JSON en la respuesta")
+
+            # Parse and clean JSON
+            parsed_json = json.loads(json_match.group(0))
+            cleaned_json = clean_json_keys(parsed_json)
+
+            # Return cleaned JSON
+            return cleaned_json
+
+        except (json.JSONDecodeError, ValueError) as e:
+            raise HTTPException(
+                status_code=500, detail=f"Error procesando respuesta: {e}"
+            )
+        except Exception:
+            raise HTTPException(
+                status_code=500, detail="La respuesta no cumple con el formato esperado"
+            )

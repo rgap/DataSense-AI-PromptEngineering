@@ -8,8 +8,8 @@ get_gemini_config()
 
 # Initialize FastAPI application
 app = FastAPI(
-    title="API de Análisis de Dataset con Gemini",
-    description="Servicio de IA para análisis de datasets, proporcionando "
+    title="API de Análisis de CSV con Gemini",
+    description="Servicio de IA para análisis de archivos CSV, proporcionando "
                 "métricas, observaciones y sugerencias accionables.",
     version="1.0.0"
 )
