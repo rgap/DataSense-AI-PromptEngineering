@@ -8,6 +8,8 @@ from fastapi import HTTPException
 from models.schemas import ValidatedAnalysisResult
 from utils.helpers import clean_json_keys
 
+from .metrics_calculator import MetricsCalculator
+
 
 class DatasetAnalyzer:
     """
@@ -22,16 +24,6 @@ class DatasetAnalyzer:
     async def analyze_file(self, file) -> ValidatedAnalysisResult:
         """
         Analyze a dataset file and return structured analysis results.
-
-        Args:
-            file: UploadFile object containing the dataset
-
-        Returns:
-            ValidatedAnalysisResult: Structured analysis with observations,
-            metrics, and suggestions
-
-        Raises:
-            HTTPException: For various error conditions during analysis
         """
         # Validate file type
         if not file.filename.endswith(('.csv', '.xlsx')):
@@ -45,10 +37,15 @@ class DatasetAnalyzer:
             # Read file content
             contents = await file.read()
             df = self._read_dataframe(contents, file.filename)
-            dataset_string = df.to_csv(index=False)
 
-            # Generate analysis using Gemini AI
-            analysis_result = await self._generate_ai_analysis(dataset_string)
+            # Calculate metrics locally instead of sending raw data
+            metrics_calculator = MetricsCalculator(df)
+            computed_metrics = metrics_calculator.calculate_all_metrics()
+
+            # Generate analysis using Gemini AI with computed metrics
+            analysis_result = await self._generate_ai_analysis(
+                computed_metrics
+            )
 
             return analysis_result
 
@@ -69,13 +66,6 @@ class DatasetAnalyzer:
     def _read_dataframe(self, contents: bytes, filename: str) -> pd.DataFrame:
         """
         Read file contents into a pandas DataFrame.
-
-        Args:
-            contents: File contents as bytes
-            filename: Name of the file to determine format
-
-        Returns:
-            pd.DataFrame: The loaded dataset
         """
         if filename.endswith('.csv'):
             try:
@@ -85,19 +75,16 @@ class DatasetAnalyzer:
         elif filename.endswith('.xlsx'):
             return pd.read_excel(io.BytesIO(contents))
 
-    async def _generate_ai_analysis(self, dataset_string: str) -> \
+    async def _generate_ai_analysis(self, computed_metrics: dict) -> \
             ValidatedAnalysisResult:
         """
-        Generate AI analysis using Gemini model.
-
-        Args:
-            dataset_string: CSV string representation of the dataset
-
-        Returns:
-            ValidatedAnalysisResult: Validated and structured analysis results
+        Generate AI analysis using Gemini model with computed metrics.
         """
+        metrics_json = json.dumps(
+            computed_metrics, ensure_ascii=False, indent=2
+        )
         formatted_prompt = self.analysis_prompt_template.format(
-            dataset_content=dataset_string
+            metrics_data=metrics_json
         )
 
         # Debug logging
@@ -115,15 +102,6 @@ class DatasetAnalyzer:
     async def _call_gemini_api(self, prompt: str):
         """
         Call Gemini API with the formatted prompt.
-
-        Args:
-            prompt: The formatted analysis prompt
-
-        Returns:
-            The response object from Gemini API
-
-        Raises:
-            HTTPException: If API call fails
         """
         try:
             print("DEBUG: Intentando llamar a model.generate_content()...")
@@ -162,15 +140,6 @@ class DatasetAnalyzer:
     def _process_gemini_response(self, response) -> ValidatedAnalysisResult:
         """
         Process and validate Gemini API response.
-
-        Args:
-            response: Raw response from Gemini API
-
-        Returns:
-            ValidatedAnalysisResult: Validated analysis results
-
-        Raises:
-            HTTPException: If response processing fails
         """
         try:
             raw_gemini_response = response.text
@@ -219,156 +188,58 @@ class DatasetAnalyzer:
     def _get_analysis_prompt_template(self) -> str:
         """
         Get the analysis prompt template for Gemini AI.
-
-        Returns:
-            str: The formatted prompt template
         """
         return """
-Eres un servicio de IA Gemini altamente especializado en el análisis de \
-datasets. Tu objetivo es analizar el dataset suministrado, proporcionar \
-métricas, observaciones y sugerencias accionables para ofrecer un panorama \
-completo sobre la estructura, patrones, anomalías y sesgos del dataset, \
-guiando al usuario en su interpretación y en futuras acciones.
+Eres un analista de datos experto que debe producir un reporte ejecutivo \
+claro basado en métricas pre-calculadas de un dataset.
 
-Conceptos a detectar:
-1. Características:
-    - Estructura:
-        - Dimensión del dataset (nº de filas y columnas)
-    - Patrón de variables:
-        - Correlación Positiva/Negativa
-        - Tendencias temporales
-        - General (comportamiento general de las variables)
-        - Estación (estacionalidad en datos temporales)
-        - Clustering (agrupaciones naturales)
-        - Asociación (reglas de asociación)
-    - Anomalías de datos:
-        - Valores atípicos (outliers)
-        - Valores faltantes (NaN/null)
-        - Inconsistencia
-        - Mal formato
-        - Duplicados
-    - Distribución:
-        - Importancia de características
+Tu objetivo es analizar las métricas proporcionadas y generar observaciones \
+y sugerencias accionables sobre la calidad, estructura y patrones del dataset.
 
-2. Sesgos:
-    - Sesgos de datos:
-        - Histórico
-        - Representación
-        - Medida
-    - Sesgos de estructura:
-        - Asociación
-        - Confirmación (complaciente)
-    - Sesgos de instrucción:
-        - Contexto de Instrucción
+INSTRUCCIONES:
+- Usa ÚNICAMENTE las métricas proporcionadas, no inventes datos
+- Identifica problemas de calidad de datos basándote en las métricas
+- Detecta patrones relevantes (correlaciones, outliers, distribuciones)
+- Proporciona sugerencias accionables y específicas
+- Mantén un tono neutral y objetivo
+- No hagas suposiciones sobre el contexto de negocio
 
-3. Tipos de observaciones decision making:
-    - Data-Driven
-    - Hypothesis-Driven
-    - Exploratory-Driven
+CONCEPTOS A DETECTAR:
+1. Calidad de datos: valores faltantes, duplicados, outliers
+2. Estructura: dimensiones, tipos de variables
+3. Patrones: correlaciones fuertes, distribuciones anómalas
+4. Problemas: inconsistencias, columnas problemáticas
 
-Restricciones:
-- No infieras información de fuentes externas o no proporcionadas en el \
-dataset.
-- No realices imputación automática de valores faltantes (NaN/null). Solo \
-identifícalos y sugiere acciones.
-- No elimines automáticamente valores atípicos (outliers). Solo detéctalos y \
-señala su impacto potencial.
-- No corrijas automáticamente inconsistencias o datos mal formateados. \
-Reporta los hallazgos y sugiere correcciones manuales.
-- No elimines filas duplicadas automáticamente. Informa sobre su presencia y \
-deja la decisión al usuario.
-- Al identificar correlaciones, 'correlación no implica causalidad'.
-- No intentes 'corregir' sesgos detectados en los datos; en su lugar, ofrece \
-estrategias de mitigación para que el usuario las implemente.
-- Mantén un tono neutral y objetivo al reportar sobre sesgos, especialmente \
-en datos sensibles; evita juicios de valor.
-- Todas las sugerencias y observaciones deben estar directamente respaldadas \
-por la evidencia encontrada en el dataset analizado y debe entenderse \
-facilmente para el usuario.
-- Las sugerencias deben ser accionables y específicas, evitando \
-recomendaciones vagas o genéricas.
-- Reconoce explícitamente la limitación del servicio al no tener conocimiento \
-intrínseco del contexto de negocio del usuario.
-- La salida debe ser clara, concisa y fácil de entender, priorizando la \
-visualización sobre la jerga técnica excesiva.
-- No inventes información.
-- No des opiniones.
-- Arrays vacíos deben ser [].
-- No uses saltos de línea innecesarios dentro del JSON.
-- Responde SOLO con el JSON, sin texto adicional.
-- El análisis debe generar un máximo de 4 'sugerencias'.
-- Cada 'sugerencia' debe tener un límite de 100 caracteres.
-- Cada 'observacion' debe tener un límite de 100 caracteres.
-- No exceder el límite de entrega de 10 observaciones (Priorizar las más \
-relevantes del análisis).
-- Las 'metricas' deben ser exclusivamente un valor numérico entre 0 y 100.
-- No hacer observaciones sobre los nombres de las columnas.
-- No hacer observaciones sobre los formatos de datos de las columnas.
+RESTRICCIONES:
+- Responde SOLO con JSON válido, sin texto adicional
+- Máximo 10 observaciones (prioriza las más importantes)
+- Máximo 4 sugerencias accionables
+- Cada observación/sugerencia: máximo 100 caracteres
+- Las métricas deben ser números enteros entre 0 y 100
 
-Formato de Salida Requerido:
-- Las claves principales de la salida JSON deben ser "observaciones", \
-"metricas" y "sugerencias".
-- El contenido de "observaciones" contiene un límite de 100 caracteres y \
-debe plantear el contenido de manera natural, legible y de fácil \
-entendimiento para el usuario.
-- Las "observaciones" deben describir un porqué de la observación realizada, \
-explicando su impacto o implicación. Deben usar los 'Conceptos a detectar' y \
-'Sesgos' para categorizar y dar contexto.
-- La estructura para cada elemento dentro de "observaciones" debe ser la \
-siguiente:
-```json
-{{
-    "tipo_de_reporte": "string",
-    "titulo": "string",
-    "mensaje": "string"
-}}
-```
-- Las 'metricas' deben ser exclusivamente un valor numérico entre 0 y 100.
-- La estructura para cada elemento dentro de "sugerencias" debe ser la \
-siguiente:
-```json
-{{
-    "tipo_de_reporte": "string",
-    "titulo": "string",
-    "mensaje": "string"
-}}
-```
-- Responde SOLO con el JSON, sin texto adicional.
-- Las "observaciones" deben describir un porqué de la observación realizada, \
-explicando su impacto o implicación. Deben usar los 'Conceptos a detectar' y \
-'Sesgos' para categorizar y dar contexto.
-- Las "sugerencias" deben describir un porqué de la observación realizada, \
-explicando su impacto o implicación. Deben usar los 'Conceptos a detectar' y \
-'Sesgos' para categorizar y dar contexto.
-- El formato del JSON DEBE ser el siguiente:
+FORMATO DE SALIDA REQUERIDO:
 ```json
 {{
     "observaciones": [
-        {{"tipo_de_reporte": "observacion", "titulo": "string"}},
-        {{"tipo_de_reporte": "observacion", "titulo": "string"}},
-        {{"tipo_de_reporte": "observacion", "titulo": "string"}},
-        {{"tipo_de_reporte": "observacion", "titulo": "string"}},
-        {{"tipo_de_reporte": "observacion", "titulo": "string"}},
-        {{"tipo_de_reporte": "observacion", "titulo": "string"}}
-        // ... (hasta 10 objetos de observación, priorizando las más \
-relevantes y con el porqué/impacto)
+        {{
+            "tipo_de_reporte": "observacion",
+            "titulo": "string (máx 50 caracteres)",
+            "mensaje": "string (máx 100 caracteres)"
+        }}
     ],
     "metricas": {{
-        "porcentaje_valores_faltantes": int, // Ejemplo: 15
-        "porcentaje_filas_duplicadas": int, // Ejemplo: 5
-        "salud_del_dataset": int // Ejemplo: 75
+        "porcentaje_valores_faltantes": int,
+        "porcentaje_filas_duplicadas": int,
+        "salud_del_dataset": int
     }},
     "sugerencias": [
-        {{"tipo_de_reporte": "sugerencia", "titulo": "string"}},
-        {{"tipo_de_reporte": "sugerencia", "titulo": "string"}},
-        {{"tipo_de_reporte": "sugerencia", "titulo": "string"}},
-        {{"tipo_de_reporte": "sugerencia", "titulo": "string"}}
-        // ... (hasta 4 objetos de sugerencia, accionables y específicas)
+        {{
+            "tipo_de_reporte": "sugerencia",
+            "titulo": "string (máx 50 caracteres)",
+            "mensaje": "string (máx 100 caracteres)"
+        }}
     ]
 }}
-```
-Dataset a analizar (en formato CSV):
-```csv
-{dataset_content}
-```
-        """
+MÉTRICAS DEL DATASET:
+{metrics_data}
+"""
