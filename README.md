@@ -1,91 +1,190 @@
 # 📌 DataSense-AI
 
-Es una plataforma de análisis de datasets en formato csv ( en un principio ). Su objetivo es analizar y dar sugerencias, alertas y observaciones que ayuden en la toma de decisiones en base al proposito del dataset.
-Está pensado para equipos, empresas, o usuarios que cuenten con grandes volumenes de datos y quieren una respuesta pronta para la toma de decisiones.
+An intelligent CSV dataset analysis platform powered by **Gemini AI**. The goal is to analyze datasets and provide suggestions, alerts, and observations that help in data-driven decision making.
+Designed for teams, companies, or users who work with large volumes of data and need quick insights for decision making.
+
+> **Note**: The backend has been significantly improved through advanced **prompt engineering** techniques to enhance the AI analysis.
 
 ---
 
-## 📖 Índice
+## 📖 Table of Contents
 
-- [Acerca del proyecto](#-acerca-del-proyecto)
-- [Características](#-características)
-- [Tecnologías utilizadas](#-tecnologías-utilizadas)
-- [Instalación](#-instalación)
-- [Uso](#-uso)
-- [Equipo](#-equipo)
-
----
-
-## 📝 Acerca del proyecto
-
-> Este proyecto permite a los usuarios cargar un archivo CSV y obtener un análisis visual de los datos mediante gráficos interactivos.
+- [About the Project](#-about-the-project)
+- [Features](#-features)
+- [Technologies Used](#️-technologies-used)
+- [Project Structure](#-project-structure)
+- [Quick Start](#-quick-start)
+- [Installation](#️-installation)
+- [Usage](#️-usage)
 
 ---
 
-## ✨ Características
+## 📝 About the Project
 
-- ✅ Análisis de archivo CSV
-- ✅ Soporte para [React - Gemini API - TypeScript]
-- ✅ Fácil de instalar y usar
+> DataSense-AI allows users to upload CSV files and get comprehensive analysis including metrics, observations, and actionable suggestions through an intuitive web interface powered by Google's Gemini AI.
 
----
+The platform provides:
 
-## 🛠️ Tecnologías utilizadas
-
-- **Lenguajes:** TypeScript, Python.
-- **Frameworks/Librerías:** React, Zod, React Router, React Query DOM, TailwindCSS, FastAPI, Pydantic, google.generativeai, pandas, uvicorn.
-- **Herramientas:** Git, Figma.
+- **Automated Analysis**: AI-powered insights from your CSV data
+- **Visual Dashboard**: Interactive metrics and observations
+- **Actionable Suggestions**: Data-driven recommendations
+- **Modern UI**: Responsive design with smooth animations
 
 ---
 
-## ⚙️ Instalación
+## ✨ Features
 
-1. Clonar el repositorio:
+- ✅ **Smart CSV Analysis** with Gemini AI
+- ✅ **Interactive Dashboard** with key metrics
+- ✅ **Drag & Drop File Upload** interface
+- ✅ **Real-time Processing** with loading states
+- ✅ **Responsive Design** for all devices
+- ✅ **Type-safe Development** with TypeScript
+- ✅ **Modern Tech Stack** (React 19, FastAPI, TailwindCSS)
 
-   ```bash
-   git clone https://github.com/DataSense-AI/DataSense-AI.git
-   ```
+---
 
-2. Entrar al directorio del proyecto:
+## 🛠️ Technologies Used
 
-   ```bash
-   cd DataSense-AI
-   ```
+### **Frontend**
 
-3. Entrar al directorio de la API y seguir los pasos del README.md:
+- **React 19** with TypeScript
+- **Vite** for fast development
+- **TailwindCSS 4** for styling
+- **TanStack Query** for state management
+- **Framer Motion** for animations
+- **Recharts** for data visualization
 
-   ```bash
-   cd ai_service
-   ```
+### **Backend**
 
-4. Entrar al directorio del frontend y seguir los pasos del README.md:
+- **FastAPI** for high-performance API
+- **Google Generative AI** (Gemini) for analysis
+- **Pandas** for data processing
+- **Uvicorn** for ASGI server
+- **Python 3.9+**
 
-   ```bash
-   cd frontend
-   ```
+### **Tools & Development**
 
-## ▶️ Uso
+- **TypeScript** for type safety
+- **ESLint** for code quality
+- **Git** for version control
+- **Zod** for data validation
 
-```bash
-npm run dev
+---
+
+## 📁 Project Structure
+
+```
+DataSense-AI-PromptEngineering/
+├── frontend/                 # React TypeScript frontend
+│   ├── src/
+│   │   ├── components/       # Reusable UI components
+│   │   ├── views/           # Page components
+│   │   ├── api/             # API client
+│   │   └── types/           # TypeScript definitions
+│   └── README.md            # Frontend documentation
+├── backend/                  # FastAPI Python backend
+│   ├── analyzer/            # Dataset analysis logic
+│   ├── api/                 # API routes
+│   ├── config/              # Configuration
+│   └── README.md            # Backend documentation
+├── _data/                   # Sample data files
+└── README.md               # This file
 ```
 
-Abrir otra terminal para el uso de la API:
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- **Node.js 18+** and npm/yarn
+- **Python 3.9+**
+- **Gemini API Key** from Google AI Studio
+
+### 1. Clone the repository
 
 ```bash
+git clone <your-repo-url>
+cd DataSense-AI-PromptEngineering
+```
+
+### 2. Setup Backend
+
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+pip install -r requirements.txt
+
+# Create .env file
+echo "GEMINI_API_KEY=your_api_key_here" > .env
+
+# Start backend server
 uvicorn service:app --reload
 ```
 
-Luego abrir en el navegador:
+### 3. Setup Frontend
 
 ```bash
+cd ../frontend
+npm install
+npm run dev
+```
+
+### 4. Access the Application
+
+Open your browser and navigate to:
+
+```
 http://localhost:5173
 ```
 
-## 📬 Equipo
+The backend API will be running on:
 
-- Matias Ron Ares 💼 [LinkedIn](https://www.linkedin.com/in/mat%C3%ADas-ron-ares-a4b09819a?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app)
-- Salvador Martínez 💼 [LinkedIn](https://www.linkedin.com/in/salvador-mart%C3%ADnez-2bb28135a/)
-- Kevin Agustin Ruiz 💼 [LinkedIn](https://www.linkedin.com/in/kevinagustin/)
-- Rel Guzman 💼 [LinkedIn](https://www.linkedin.com/in/relguzman/)
-- Natalia Silva 💼 [LinkedIn](https://www.linkedin.com/in/natalia-silva-b1577527a?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app)
+```
+http://localhost:8000
+```
+
+---
+
+## ⚙️ Installation
+
+For detailed installation instructions, please refer to the individual README files:
+
+- **Backend Setup**: See [`backend/README.md`](./backend/README.md)
+- **Frontend Setup**: See [`frontend/README.md`](./frontend/README.md)
+
+---
+
+## ▶️ Usage
+
+1. **Start the backend server** (in `backend/` directory):
+
+   ```bash
+   uvicorn service:app --reload
+   ```
+
+2. **Start the frontend development server** (in `frontend/` directory):
+
+   ```bash
+   npm run dev
+   ```
+
+3. **Upload your CSV file** through the web interface at `http://localhost:5173`
+
+4. **View the analysis results** including:
+   - Dataset health metrics
+   - Missing values analysis
+   - Data quality observations
+   - Actionable improvement suggestions
+
+---
+
+## 📊 API Documentation
+
+Once the backend is running, you can access the interactive API documentation at:
+
+```
+http://localhost:8000/docs
+```
